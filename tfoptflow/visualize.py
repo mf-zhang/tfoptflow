@@ -12,9 +12,7 @@ from __future__ import absolute_import, division, print_function
 import matplotlib.pyplot as plt
 
 from utils import clean_dst_file
-from optflow import *
-import numpy as np
-import matplotlib.pyplot as plt
+from optflow import flow_to_img
 
 
 def plot_img_pairs_w_flows(
@@ -119,59 +117,8 @@ def display_img_pairs_w_flows(
         info: optional, stats to display above predicted flow
         flow_mag_max: Max flow to map to 255
     """
-    print(np.max(flow_preds))
-    print(np.min(flow_preds))
     plt = plot_img_pairs_w_flows(img_pairs, None, 0, flow_preds, flow_gts, titles, info, flow_mag_max)
     plt.show()
-    
-def zmf_save_flows_s(
-        names,
-        img_pairs,
-        flow_preds=None,
-        flow_gts=None,
-        titles=None,
-        info=None,
-        flow_mag_max=None):
-    """Display the given set of image pairs, optionally with flows and titles.
-    Args:
-        img_pairs: image pairs in [batch_size, 2, H, W, 3] or list([2, H, W, 3]) format.
-        flow_preds: optional, predicted flows in [batch_size, H, W, 2] or list([H, W, 2]) format.
-        flow_gts: optional, groundtruth flows in [batch_size, H, W, 2] or list([H, W, 2]) format.
-        titles: optional, list of image and flow IDs to display with each image.
-        info: optional, stats to display above predicted flow
-        flow_mag_max: Max flow to map to 255
-    """
-    count = 0
-    for a_flow in flow_preds:
-        dst = './finalresult/sony/%s.flo'%names[count]
-        flow_write(a_flow,dst)
-        count += 1
-    
-def zmf_save_flows_c(
-        names,
-        img_pairs,
-        flow_preds=None,
-        flow_gts=None,
-        titles=None,
-        info=None,
-        flow_mag_max=None):
-    """Display the given set of image pairs, optionally with flows and titles.
-    Args:
-        img_pairs: image pairs in [batch_size, 2, H, W, 3] or list([2, H, W, 3]) format.
-        flow_preds: optional, predicted flows in [batch_size, H, W, 2] or list([H, W, 2]) format.
-        flow_gts: optional, groundtruth flows in [batch_size, H, W, 2] or list([H, W, 2]) format.
-        titles: optional, list of image and flow IDs to display with each image.
-        info: optional, stats to display above predicted flow
-        flow_mag_max: Max flow to map to 255
-    """
-    count = 0
-    for a_flow in flow_preds:
-        dst = './rebuttal/%s.flo'%names[count]
-        flow_write(a_flow,dst)
-        count += 1
-    
-    # plt = plot_img_pairs_w_flows(img_pairs, None, 0, flow_preds, flow_gts, titles, info, flow_mag_max)
-    # plt.show()
 
 
 def archive_img_pairs_w_flows(

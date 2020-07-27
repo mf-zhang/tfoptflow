@@ -391,7 +391,7 @@ class ModelPWCNet(ModelBase):
             x_adapt = np.array(x, dtype=np.float16) if isinstance(x, list) else x.astype(np.float16)
         else:
             x_adapt = np.array(x, dtype=np.float32) if isinstance(x, list) else x.astype(np.float32)
-#         x_adapt /= 255. # zmf for raw
+        x_adapt /= 255.
 
         # Make sure the image dimensions are multiples of 2**pyramid_levels, pad them if they're not
         _, pad_h = divmod(x_adapt.shape[2], 2**self.opts['pyr_lvls'])

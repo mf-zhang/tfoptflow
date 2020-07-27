@@ -503,18 +503,7 @@ class OpticalFlowDataset(object):
         """
         # Read in RGB image, if any
         if image_path:
-            if image_path[0][-3] == 'n' and image_path[0][-2] == 'p' and image_path[0][-1] == 'y':
-                raw_image1, raw_image2 = np.load(image_path[0]), np.load(image_path[1])
-                rr1,rr2 = raw_image1[0::2,0::2], raw_image2[0::2,0::2]
-                gr1,gr2 = raw_image1[0::2,1::2], raw_image2[0::2,1::2]
-                bb1,bb2 = raw_image1[1::2,1::2], raw_image2[1::2,1::2]
-                gb1,gb2 = raw_image1[1::2,0::2], raw_image2[1::2,0::2]
-                image1, image2 = np.zeros([rr1.shape[0],rr1.shape[1],3]), np.zeros([rr2.shape[0],rr2.shape[1],3])
-                image1[:,:,0],image2[:,:,0] = rr1, rr2
-                image1[:,:,1],image2[:,:,1] = (gr1+gb1)/2, (gr2+gb2)/2
-                image1[:,:,2],image2[:,:,2] = bb1, bb2
-            else:
-                image1, image2 = imread(image_path[0]), imread(image_path[1])
+            image1, image2 = imread(image_path[0]), imread(image_path[1])
             assert(len(image1.shape) == 3 and image1.shape[2] == 3 and len(image2.shape) == 3 and image2.shape[2] == 3)
 
         # Read in label, if any
