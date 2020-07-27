@@ -31,7 +31,7 @@ _DEFAULT_AUG_OPTIONS = {
     # Translate 50% of images by a value between -5 and +5 percent of original size on x- and y-axis independently
     'translate': (0.5, 0.05),
     'scale': (0.5, 0.05),  # Scale 50% of images by a factor between 95 and 105 percent of original size
-    'random_seed': 1969,
+    'random_seed': 1997,
 }
 
 
