@@ -36,7 +36,7 @@ _DEFAULT_DS_TRAIN_OPTIONS = {
     # 'type': 'final',  # ['clean' | 'final'] for MPISintel, ['noc' | 'occ'] for KITTI, 'into_future' for FlyingThings3D
     'tb_test_imgs': False,  # If True, make test images available to model in training mode
     # Sampling and split options
-    'random_seed': 1969,  # random seed used for sampling
+    'random_seed': 1998,  # random seed used for sampling
     'val_split': 0.03,  # portion of data reserved for the validation split
     # Augmentation options
     'aug_type': 'heavy',  # in [None, 'basic', 'heavy'] to add augmented data to training set
@@ -57,7 +57,7 @@ _DEFAULT_DS_TUNE_OPTIONS = {
     'type': 'into_future',
     'tb_test_imgs': False,  # If True, make test images available to model in training mode
     # Sampling and split options
-    'random_seed': 1969,  # random seed used for sampling
+    'random_seed': 1998,  # random seed used for sampling
     'val_split': 0.03,  # portion of data reserved for the validation split
     # Augmentation options
     'aug_type': 'heavy',  # in [None, 'basic', 'heavy'] to add augmented data to training set
@@ -76,7 +76,7 @@ _DEFAULT_DS_VAL_OPTIONS = {
     'scale_preproc': None,  # None or (h, w),
     'type': 'final',  # ['clean' | 'final'] for MPISintel, ['noc' | 'occ'] for KITTI, 'into_future' for FlyingThings3D
     # Sampling and split options
-    'random_seed': 1969,  # random seed used for sampling
+    'random_seed': 1998,  # random seed used for sampling
     'val_split': 0.03,  # portion of data reserved for the validation split
     # Augmentation options
     'aug_type': None,  # in [None, 'basic', 'heavy'] to add augmented data to training set
@@ -89,7 +89,7 @@ _DEFAULT_DS_TEST_OPTIONS = {
     'scale_preproc': None,  # None or (h, w),
     'type': 'final',  # ['clean' | 'final'] for MPISintel, ['noc' | 'occ'] for KITTI, 'into_future' for FlyingThings3D
     # Sampling and split options
-    'random_seed': 1969,  # random seed used for sampling
+    'random_seed': 1998,  # random seed used for sampling
     'val_split': 0.03,  # portion of data reserved for the validation split
     # Augmentation options
     # 'aug_type': None,  # in [None, 'basic', 'heavy'] to add augmented data to training set
