@@ -544,26 +544,10 @@ class ModelPWCNet(ModelBase):
             self.optim = LossScaleOptimizer(self.optim, loss_scale_mgr)
 
             # Let minimize() take care of both computing the gradients and applying them to the model variables
-            # self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
-            grads_and_vars = self.optim.compute_gradients(self.loss_op, var_list=tf.trainable_variables())
-            if tf.is_nan(grads_and_vars[0]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad), tf.zeros_like(grad), grad), val) for grad, val in grads_and_vars]
-            elif tf.is_nan(grads_and_vars[1]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad), tf.zeros_like(grad), grad), val) for grad, val in grads_and_vars]
-            else:
-                grads_and_vars_ = grads_and_vars
-            self.optim_op = self.optim.apply_gradients(grads_and_vars_, global_step=self.g_step_op, name=None)
+            self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
         else:
             # Let minimize() take care of both computing the gradients and applying them to the model variables
-            # self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
-            grads_and_vars = self.optim.compute_gradients(self.loss_op, var_list=tf.trainable_variables())
-            if tf.is_nan(grads_and_vars[0]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad), tf.zeros_like(grad), grad), val) for grad, val in grads_and_vars]
-            elif tf.is_nan(grads_and_vars[1]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad), tf.zeros_like(grad), grad), val) for grad, val in grads_and_vars]
-            else:
-                grads_and_vars_ = grads_and_vars
-            self.optim_op = self.optim.apply_gradients(grads_and_vars_, global_step=self.g_step_op, name=None)
+            self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
 
     def config_train_ops(self):
         """Configure training ops.
