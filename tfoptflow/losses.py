@@ -24,7 +24,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
 
-def pwcnet_loss(y, y_hat_pyr, opts, batch_weight):
+def pwcnet_loss(y, y_hat_pyr, opts):
     """Adds the L2-norm or L1-norm losses at all levels of the pyramid.
     In regular training mode, the L2-norm is used to compute the multiscale loss.
     In fine-tuning mode, the L1-norm is used to compute the robust loss.
@@ -69,8 +69,5 @@ def pwcnet_loss(y, y_hat_pyr, opts, batch_weight):
 
             # Scale total loss contribution of the loss at each individual level
             total_loss += opts['alphas'][lvl] * tf.pow(level_loss + opts['epsilon'], opts['q'])
-        # total_loss = tf.Print(total_loss, [total_loss], "total_loss before: ")
-        # batch_weight = tf.Print(batch_weight, [batch_weight], "batch_weight: ")
-        total_loss *= batch_weight
-        # total_loss = tf.Print(total_loss, [total_loss], "total_loss after: ")
+
         return total_loss

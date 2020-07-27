@@ -214,7 +214,6 @@ class ModelBase:
         batch_size = self.num_gpus * self.opts['batch_size']
         self.x_tnsr = tf.placeholder(self.opts['x_dtype'], [batch_size] + self.opts['x_shape'], 'x_tnsr')
         self.y_tnsr = tf.placeholder(self.opts['y_dtype'], [batch_size] + self.opts['y_shape'], 'y_tnsr')
-        self.batch_weight = tf.placeholder(dtype=tf.float32, name='bw')
 
     def build_graph(self):
         """ Build the complete graph in TensorFlow

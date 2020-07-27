@@ -293,7 +293,7 @@ class ModelPWCNet(ModelBase):
                         self.flow_pred_tnsr, self.flow_pyr_tnsr = flow_pred_tnsr, flow_pyr_tnsr
 
                     # Compute the loss for this tower, with regularization term if requested
-                    loss_unreg = pwcnet_loss(y_tnsr, flow_pyr_tnsr, self.opts, self.batch_weight)
+                    loss_unreg = pwcnet_loss(y_tnsr, flow_pyr_tnsr, self.opts)
                     if self.opts['gamma'] == 0.:
                         loss = loss_unreg
                     else:
@@ -515,7 +515,7 @@ class ModelPWCNet(ModelBase):
         """Setup loss computations. See pwcnet_loss() function for unregularized loss implementation details.
         """
         # Setup unregularized loss
-        loss_unreg = pwcnet_loss(self.y_tnsr, self.flow_pyr_tnsr, self.opts, self.batch_weight)
+        loss_unreg = pwcnet_loss(self.y_tnsr, self.flow_pyr_tnsr, self.opts)
 
         # Add regularization term
         if self.opts['gamma'] == 0.:
@@ -544,26 +544,10 @@ class ModelPWCNet(ModelBase):
             self.optim = LossScaleOptimizer(self.optim, loss_scale_mgr)
 
             # Let minimize() take care of both computing the gradients and applying them to the model variables
-            # self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
-            grads_and_vars = self.optim.compute_gradients(self.loss_op, var_list=tf.trainable_variables())
-            if tf.is_nan(grads_and_vars[0]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad),tf.zeros_like(grad), grad), val) for grad, val in grads_and_vars]
-            elif tf.is_nan(grads_and_vars[1]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad), tf.zeros_like(grad), grad), val) for grad, val in grads_and_vars]
-            else:
-                grads_and_vars_ = grads_and_vars
-            self.optim_op = self.optim.apply_gradients(grads_and_vars_, global_step=self.g_step_op, name=None)
+            self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
         else:
             # Let minimize() take care of both computing the gradients and applying them to the model variables
-            # self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
-            grads_and_vars = self.optim.compute_gradients(self.loss_op, var_list=tf.trainable_variables())
-            if tf.is_nan(grads_and_vars[0]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad),tf.zeros_like(grad), grad),val) for grad, val in grads_and_vars]
-            elif tf.is_nan(grads_and_vars[1]) == True:
-                grads_and_vars_ = [(tf.where(tf.is_nan(grad),tf.zeros_like(grad), grad), val) for grad, val in grads_and_vars]
-            else:
-                grads_and_vars_ = grads_and_vars
-            self.optim_op = self.optim.apply_gradients(grads_and_vars_, global_step=self.g_step_op, name=None)
+            self.optim_op = self.optim.minimize(self.loss_op, self.g_step_op, tf.trainable_variables())
 
     def config_train_ops(self):
         """Configure training ops.
@@ -655,37 +639,14 @@ class ModelPWCNet(ModelBase):
                 # x: [batch_size*num_gpus,2,H,W,3] uint8 y: [batch_size*num_gpus,H,W,2] float32
                 # x_adapt: [batch_size,2,H,W,3] float32 y_adapt: [batch_size,H,W,2] float32
                 if self.opts['use_tf_data'] is True:
-                    x, y, id_batch = self.sess.run(train_next_batch)
+                    x, y, _ = self.sess.run(train_next_batch)
                 else:
-                    x, y, id_batch = self.ds.next_batch(batch_size * self.num_gpus, split='train')
+                    x, y, _ = self.ds.next_batch(batch_size * self.num_gpus, split='train')
                 x_adapt, _ = self.adapt_x(x)
                 y_adapt, _ = self.adapt_y(y)
-                
-                # # print(x_adapt.shape)
-                # # print(id_batch)
-                # batch_weight = 0.
-                # prc = step/(self.opts['max_steps'] + 1)
-                # for anid in id_batch[:16]:
-                #     if anid[-5] in [49,50]: # 1,2
-                #         batch_weight += 2*(1-prc)
-                #     elif anid[-5] in [51,52]: # 3,4
-                #         batch_weight += 2*prc
-                #     else:
-                #         print("nothing detected!!!!!!!!!")
-                # batch_weight /= 16.0
-                # batch_weight -= (batch_weight-1)/2
-                # # print(batch_weight)
-                # if not isinstance(batch_weight,float):
-                #     batch_weight = 1.0
-                # if batch_weight > 1.2:
-                #     batch_weight = 1.2
-                # if batch_weight < 0.8:
-                #     batch_weight = 0.8
-                batch_weight = 1.0
-
 
                 # Run the samples through the network (loss, error rate, and optim ops (backprop))
-                feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt, self.batch_weight: batch_weight}
+                feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt}
                 start_time = time.time()
                 y_hat = self.sess.run(self.y_hat_train_tnsr, feed_dict=feed_dict)
                 duration.append(time.time() - start_time)
@@ -738,8 +699,7 @@ class ModelPWCNet(ModelBase):
                         # x_adapt: [batch_size * self.num_gpus,2,H,W,3] float32 y_adapt: [batch_size,H,W,2] float32
 
                         # Run the val samples through the network (loss and error rate ops)
-                        batch_weight = 1.0
-                        feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt, self.batch_weight: batch_weight}
+                        feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt}
                         y_hat = self.sess.run(self.y_hat_val_tnsr, feed_dict=feed_dict)
                         loss, epe = self.postproc_y_hat_val(y_hat)
                         val_loss.append(loss), val_epe.append(epe)
@@ -901,8 +861,7 @@ class ModelPWCNet(ModelBase):
                 # x_adapt: [batch_size * self.num_gpus,2,H,W,3] float32 y_adapt: [batch_size,H,W,2] float32
 
                 # Run the sample through the network (metric op)
-                batch_weight = 1.0
-                feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt, self.batch_weight: batch_weight}
+                feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt}
                 start_time = time.time()
                 y_hat = self.sess.run(self.y_hat_val_tnsr, feed_dict=feed_dict)
                 duration = time.time() - start_time
