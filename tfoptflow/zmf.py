@@ -230,10 +230,23 @@ def imzoom(img, zoom_factor):
     assert(result.shape[0] == height and result.shape[1] == width)
     return result
 
-def imSNR(im):
-    import scipy.stats
+def im_single_snr(im):
+    """
+    input im, output single image SNR\n
+    https://www.geeksforgeeks.org/scipy-stats-signaltonoise-function-python/\n
+    https://github.com/scipy/scipy/issues/9097\n
+    https://stackoverflow.com/questions/54323143/add-white-noise-on-image-based-on-snr
+    """
+    import numpy as np
+    a = np.asanyarray(im)
+    m = a.mean()
+    sd = a.std()
+    return np.where(sd == 0, 0, m/sd)
 
-    return scipy.stats.signaltonoise(im,axis=None)
+def im_psnr(im1,im2):
+    import cv2
+    return cv2.PSNR(im1,im2)
+
 
 # DEAL WITH RAW IMAGES
 """example
