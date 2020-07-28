@@ -17,7 +17,6 @@ import numpy as np
 from tqdm import tqdm
 from skimage.io import imread
 import cv2
-import zmf
 
 from augment import Augmenter
 from optflow import flow_read
@@ -505,10 +504,7 @@ class OpticalFlowDataset(object):
         # Read in RGB image, if any
         if image_path:
             image1, image2 = imread(image_path[0]), imread(image_path[1])
-            # zmf add noise
-            zmf.imsave('../../../workplace/todelete/'+zmf.basename(image_path[0]),image1)
-            zmf.imsave('../../../workplace/todelete/'+zmf.basename(image_path[1]),image2)
-            # fmz
+
             assert(len(image1.shape) == 3 and image1.shape[2] == 3 and len(image2.shape) == 3 and image2.shape[2] == 3)
 
         # Read in label, if any
