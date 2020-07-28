@@ -4,6 +4,17 @@ model_pwcnet.py - add dealing with NaN
 
 tfoptflow-grad - compute a batch weight for every batch and multiply by loss, to value clear images when the training start, and value noisy images when training end
 
+zmf_finetine_large.py - finetune with large model
+
+zmf_test_small.py - test with small model
+
+zmf_test_large.py - test with large model
+
+zmf_train_small.py - train with small model
+
+zmf_train_large.py - train with large model
+
+
 # Optical Flow Prediction with Tensorflow
 
 This repo provides a TensorFlow-based implementation of the wonderful paper "PWC-Net: CNNs for Optical Flow Using Pyramid, Warping, and Cost Volume," by Deqing Sun et al. (CVPR 2018).
