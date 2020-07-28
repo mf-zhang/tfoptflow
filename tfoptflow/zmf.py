@@ -244,9 +244,15 @@ def im_single_snr(im):
     return np.where(sd == 0, 0, m/sd)
 
 def im_psnr(im1,im2):
+    """
+    input 2 images, output PSNR
+    """
     import cv2
     return cv2.PSNR(im1,im2)
 
+def imclip(im, minn, maxx):
+    import numpy as np
+    return np.clip(im,minn,maxx)
 
 # DEAL WITH RAW IMAGES
 """example

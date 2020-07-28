@@ -506,8 +506,24 @@ class OpticalFlowDataset(object):
         if image_path:
             image1, image2 = imread(image_path[0]), imread(image_path[1])
             # zmf add noise
-            zmf.imsave('../../../workplace/todelete/'+zmf.basename(image_path[0]),image1)
-            zmf.imsave('../../../workplace/todelete/'+zmf.basename(image_path[1]),image2)
+            # Gauss Only
+
+            std = zmf.uniform(0.05,0.3)
+            gn1 = zmf.normal(0.,std,image1.shape)
+            gn2 = zmf.normal(0.,std,image2.shape)
+
+            image1 = image1/255.
+            image2 = image2/255.
+            image1 += gn1
+            image2 += gn2
+            image1 = zmf.imclip(image1,0.,1.)
+            image2 = zmf.imclip(image2,0.,1.)
+
+            # zmf.imsave('../../../workplace/todelete/'+str(std)+'_'+zmf.basename(image_path[0]),image1)
+            # zmf.imsave('../../../workplace/todelete/'+str(std)+'_'+zmf.basename(image_path[1]),image2)
+
+            image1 *= 255.
+            image2 *= 255.
             # fmz
             assert(len(image1.shape) == 3 and image1.shape[2] == 3 and len(image2.shape) == 3 and image2.shape[2] == 3)
 
