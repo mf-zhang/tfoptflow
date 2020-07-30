@@ -524,6 +524,8 @@ class OpticalFlowDataset(object):
 
             image1 *= 255.
             image2 *= 255.
+            image1 = image1.astype('uint8')
+            image2 = image2.astype('uint8')
             # fmz
             assert(len(image1.shape) == 3 and image1.shape[2] == 3 and len(image2.shape) == 3 and image2.shape[2] == 3)
 
