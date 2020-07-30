@@ -17,7 +17,7 @@ import numpy as np
 from tqdm import tqdm
 from skimage.io import imread
 import cv2
-import zmf
+import zmf,math
 
 from augment import Augmenter
 from optflow import flow_read
@@ -506,26 +506,70 @@ class OpticalFlowDataset(object):
         if image_path:
             image1, image2 = imread(image_path[0]), imread(image_path[1])
             # zmf add noise
-            # Gauss Only
-
-            std = zmf.uniform(0.05,0.3)
-            gn1 = zmf.normal(0.,std,image1.shape)
-            gn2 = zmf.normal(0.,std,image2.shape)
-
             image1 = image1/255.
             image2 = image2/255.
-            image1 += gn1
-            image2 += gn2
+            
+            choose_noise = 2 # 0-gauss, 1-BIT, 2-mine
+            if choose_noise == 0:
+                # 1_Normal: Noisy -> std = 0.3 - 58, 0.05 - 74 -> clear
+                std = zmf.uniform(0.05,0.3)
+                gn1 = zmf.normal(0.,std,image1.shape)
+                gn2 = zmf.normal(0.,std,image2.shape)
+                image1 += gn1
+                image2 += gn2
+            if choose_noise == 1:
+                # 2_BIT: Noisy -> logK = 1.8 - 60, 0.6 - 70  -> clear
+                # 2_BIT_Poisson
+                logK = zmf.uniform(0.6,1.8)
+                K = math.exp(logK)
+                noise_1a = (zmf.poisson(image1*255.,image1.shape)-image1*255.) / 255. * K
+                noise_1b = (zmf.poisson(image2*255.,image2.shape)-image2*255.) / 255. * K
+
+                # 2_BIT_TukeyLambda
+                lam = -0.26
+                mean = 0.
+                logscale = (5./6.) * logK + (0.6-5./6.*1.4) + zmf.uniform(-0.05,0.05)
+                scale = math.exp(logscale)
+                noise_2a = zmf.tukeylambda(lam,mean,scale/60.,image1.shape)
+                noise_2b = zmf.tukeylambda(lam,mean,scale/60.,image2.shape)
+
+                # 2_BIT_ROW
+                noise_3a = np.zeros(image1.shape)
+                noise_3b = np.zeros(image2.shape)
+                for rgb in range(noise_3a.shape[2]):
+                    for row in range(noise_3a.shape[0]):
+                        logdev = 0.75 * logK - 2.2 + zmf.uniform(-0.375,0.375)
+                        dev = math.exp(logdev)
+                        row_shift = zmf.normal(0,dev)
+                        noise_3a[row,:,rgb] = row_shift/15.
+                for rgb in range(noise_3b.shape[2]):
+                    for row in range(noise_3b.shape[0]):
+                        logdev = 0.75 * logK - 2.2 + zmf.uniform(-0.375,0.375)
+                        dev = math.exp(logdev)
+                        row_shift = zmf.normal(0,dev)
+                        noise_3b[row,:,rgb] = row_shift/15.
+
+                image1 = image1 + noise_1a + noise_2a + noise_3a
+                image2 = image2 + noise_1b + noise_2b + noise_3b
+            if choose_noise == 2:
+
+                a = zmf.uniform(0.05,0.2)
+                b = zmf.uniform(0.05,0.2)
+                std1 = a * image1 + b
+                std2 = a * image2 + b
+                noise_Mine1 = zmf.normal(0,std1,image1.shape)
+                noise_Mine2 = zmf.normal(0,std2,image2.shape)
+                image1 += noise_Mine1
+                image2 += noise_Mine2
+            
             image1 = zmf.imclip(image1,0.,1.)
             image2 = zmf.imclip(image2,0.,1.)
-
-            # zmf.imsave('../../../workplace/todelete/'+str(std)+'_'+zmf.basename(image_path[0]),image1)
-            # zmf.imsave('../../../workplace/todelete/'+str(std)+'_'+zmf.basename(image_path[1]),image2)
-
             image1 *= 255.
             image2 *= 255.
             image1 = image1.astype('uint8')
             image2 = image2.astype('uint8')
+            # zmf.imsave('../../../workplace/todelete/'+str(a+b)+'_'+zmf.basename(image_path[0]),image1)
+            # zmf.imsave('../../../workplace/todelete/'+str(a+b)+'_'+zmf.basename(image_path[1]),image2)
             # fmz
             assert(len(image1.shape) == 3 and image1.shape[2] == 3 and len(image2.shape) == 3 and image2.shape[2] == 3)
 
