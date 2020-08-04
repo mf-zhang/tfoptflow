@@ -368,7 +368,8 @@ class ModelPWCNet(ModelBase):
     ###
     # Sample mgmt
     ###
-    def adapt_x(self, x):
+    def adapt_x(self, x, zmf_step_now=-1, zmf_step_all=-1): 
+        # zmf add zmf_step_now and zmf_step_all for add noise step by step
         """Preprocess the input samples to adapt them to the network's requirements
         Here, x, is the actual data, not the x TF tensor.
         Args:
@@ -378,7 +379,7 @@ class ModelPWCNet(ModelBase):
             Also, return adaptation info in (N,2,H,W,3) format
         """
         # Ensure we're dealing with RGB image pairs
-        print("zmf:",x.shape)
+        # print("zmf:",x.shape) # (32,2,256,448,3)
         assert (isinstance(x, np.ndarray) or isinstance(x, list))
         if isinstance(x, np.ndarray):
             assert (len(x.shape) == 5)
@@ -393,6 +394,9 @@ class ModelPWCNet(ModelBase):
         else:
             x_adapt = np.array(x, dtype=np.float32) if isinstance(x, list) else x.astype(np.float32)
         x_adapt /= 255.
+
+        # zmf add noise according to steps
+        print(zmf_step_now,zmf_step_all,zmf_step_now/zmf_step_all)
 
         # Make sure the image dimensions are multiples of 2**pyramid_levels, pad them if they're not
         _, pad_h = divmod(x_adapt.shape[2], 2**self.opts['pyr_lvls'])
@@ -661,7 +665,7 @@ class ModelPWCNet(ModelBase):
                     x, y, _ = self.sess.run(train_next_batch)
                 else:
                     x, y, _ = self.ds.next_batch(batch_size * self.num_gpus, split='train')
-                x_adapt, _ = self.adapt_x(x)
+                x_adapt, _ = self.adapt_x(x,zmf_step_now=step,zmf_step_all=self.opts['max_steps']) # zmf for add noise by step
                 y_adapt, _ = self.adapt_y(y)
 
                 # Run the samples through the network (loss, error rate, and optim ops (backprop))
