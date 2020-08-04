@@ -51,7 +51,7 @@ from model_pwcnet import ModelPWCNet, _DEFAULT_PWCNET_TRAIN_OPTIONS
 if sys.platform.startswith("win"):
     _DATASET_ROOT = 'E:/datasets/'
 else:
-    _DATASET_ROOT = '../../../data/dataset/FlyingChairs_MINE/FlyingChairs_release/'
+    _DATASET_ROOT = '../../../data/dataset/FlyingChairs/FlyingChairs_release/'
 _FLYINGCHAIRS_ROOT = _DATASET_ROOT
 # _FLYINGTHINGS3DHALFRES_ROOT = _DATASET_ROOT + 'FlyingThings3D_HalfRes'
     
