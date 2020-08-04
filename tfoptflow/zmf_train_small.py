@@ -102,7 +102,7 @@ ds.print_config()
 # Start from the default options
 nn_opts = deepcopy(_DEFAULT_PWCNET_TRAIN_OPTIONS)
 nn_opts['verbose'] = True
-nn_opts['ckpt_dir'] = '../../../workplace/todelete/pwcnet-sm/'
+nn_opts['ckpt_dir'] = '../../../workplace/tfoptflow/smallModel/gauss/'
 nn_opts['batch_size'] = ds_opts['batch_size']
 nn_opts['x_shape'] = [2, ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 3]
 nn_opts['y_shape'] = [ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 2]

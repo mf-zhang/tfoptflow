@@ -51,7 +51,7 @@ from model_pwcnet import ModelPWCNet, _DEFAULT_PWCNET_TRAIN_OPTIONS
 if sys.platform.startswith("win"):
     _DATASET_ROOT = 'E:/datasets/'
 else:
-    _DATASET_ROOT = '../../../data/dataset/FlyingChairs/FlyingChairs_release/'
+    _DATASET_ROOT = '../../../data/dataset/FlyingChairs_MINE/FlyingChairs_release/'
 _FLYINGCHAIRS_ROOT = _DATASET_ROOT
 # _FLYINGTHINGS3DHALFRES_ROOT = _DATASET_ROOT + 'FlyingThings3D_HalfRes'
     
@@ -102,7 +102,7 @@ ds.print_config()
 # Start from the default options
 nn_opts = deepcopy(_DEFAULT_PWCNET_TRAIN_OPTIONS)
 nn_opts['verbose'] = True
-nn_opts['ckpt_dir'] = '../../../workplace/tfoptflow/gauss/uniform005_030/'
+nn_opts['ckpt_dir'] = '../../../workplace/tfoptflow/largeModel/todelete/'
 nn_opts['batch_size'] = ds_opts['batch_size']
 nn_opts['x_shape'] = [2, ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 3]
 nn_opts['y_shape'] = [ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 2]
