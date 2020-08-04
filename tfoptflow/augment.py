@@ -120,6 +120,7 @@ class Augmenter(object):
                         if do_labels:
                             aug_flow = scale(aug_flow, ratio)
                             aug_flow *= ratio
+
             aug_images.append((aug_img_pair[0], aug_img_pair[1]))
             if do_labels:
                 aug_labels.append(aug_flow)

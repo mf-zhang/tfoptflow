@@ -368,8 +368,7 @@ class ModelPWCNet(ModelBase):
     ###
     # Sample mgmt
     ###
-    def adapt_x(self, x, zmf_step_now=-1, zmf_step_all=-1): 
-        # zmf add zmf_step_now and zmf_step_all for add noise step by step
+    def adapt_x(self, x):
         """Preprocess the input samples to adapt them to the network's requirements
         Here, x, is the actual data, not the x TF tensor.
         Args:
@@ -379,7 +378,6 @@ class ModelPWCNet(ModelBase):
             Also, return adaptation info in (N,2,H,W,3) format
         """
         # Ensure we're dealing with RGB image pairs
-        # print("zmf:",x.shape) # (32,2,256,448,3)
         assert (isinstance(x, np.ndarray) or isinstance(x, list))
         if isinstance(x, np.ndarray):
             assert (len(x.shape) == 5)
@@ -394,22 +392,6 @@ class ModelPWCNet(ModelBase):
         else:
             x_adapt = np.array(x, dtype=np.float32) if isinstance(x, list) else x.astype(np.float32)
         x_adapt /= 255.
-
-        # zmf add noise according to steps
-        if zmf_step_now > 0:
-            zmf_progress = zmf_step_now / zmf_step_all
-
-            for i in range(x_adapt.shape[0]): # i = 0-32
-                image1 = x_adapt[i,0,:,:,:]
-                image2 = x_adapt[i,1,:,:,:]
-                std = np.random.uniform(0.05,0.3) * zmf_progress
-                gn1 = np.random.normal(0.,std,image1.shape)
-                gn2 = np.random.normal(0.,std,image2.shape)
-                image1 += gn1
-                image2 += gn2
-                x_adapt[i,0,:,:,:] = image1
-                x_adapt[i,1,:,:,:] = image2
-        # fmz
 
         # Make sure the image dimensions are multiples of 2**pyramid_levels, pad them if they're not
         _, pad_h = divmod(x_adapt.shape[2], 2**self.opts['pyr_lvls'])
@@ -678,7 +660,7 @@ class ModelPWCNet(ModelBase):
                     x, y, _ = self.sess.run(train_next_batch)
                 else:
                     x, y, _ = self.ds.next_batch(batch_size * self.num_gpus, split='train')
-                x_adapt, _ = self.adapt_x(x,zmf_step_now=step,zmf_step_all=self.opts['max_steps']) # zmf for add noise by step
+                x_adapt, _ = self.adapt_x(x)
                 y_adapt, _ = self.adapt_y(y)
 
                 # Run the samples through the network (loss, error rate, and optim ops (backprop))
@@ -730,7 +712,7 @@ class ModelPWCNet(ModelBase):
                             # Get a batch of val samples and make them conform to the network's requirements
                             x, y, _ = self.ds.next_batch(batch_size * self.num_gpus, split='val')
                             # x: [batch_size * self.num_gpus,2,H,W,3] uint8 y: [batch_size,H,W,2] float32
-                        x_adapt, _ = self.adapt_x(x,zmf_step_now=step,zmf_step_all=self.opts['max_steps']) # zmf add for seeing noise test
+                        x_adapt, _ = self.adapt_x(x)
                         y_adapt, _ = self.adapt_y(y)
                         # x_adapt: [batch_size * self.num_gpus,2,H,W,3] float32 y_adapt: [batch_size,H,W,2] float32
 
@@ -761,7 +743,7 @@ class ModelPWCNet(ModelBase):
                         if tb_test_loaded is False:
                             x_tb_test, IDs_tb_test = self.ds.get_samples(
                                 batch_size * self.num_gpus, split='test', simple_IDs=True)
-                            x_tb_test_adapt, _ = self.adapt_x(x_tb_test,zmf_step_now=step,zmf_step_all=self.opts['max_steps']) # zmf add for seeing noise test
+                            x_tb_test_adapt, _ = self.adapt_x(x_tb_test)
                             # IDs_tb_test = self.ds.simplify_IDs(x_IDs)
                             tb_test_loaded = True
 
@@ -788,7 +770,7 @@ class ModelPWCNet(ModelBase):
                         if tb_val_loaded is False:
                             x_tb_val, y_tb_val, IDs_tb_val = self.ds.get_samples(
                                 batch_size * self.num_gpus, split='val', simple_IDs=True)
-                            x_tb_val_adapt, _ = self.adapt_x(x_tb_val,zmf_step_now=step,zmf_step_all=self.opts['max_steps']) # zmf add for seeing noise test
+                            x_tb_val_adapt, _ = self.adapt_x(x_tb_val)
                             # IDs_tb_val = self.ds.simplify_IDs(x_IDs)
                             tb_val_loaded = True
 

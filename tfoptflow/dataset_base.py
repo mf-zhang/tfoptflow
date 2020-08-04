@@ -509,8 +509,7 @@ class OpticalFlowDataset(object):
             image1 = image1/255.
             image2 = image2/255.
             
-            choose_noise = 3 # 0-gauss, 1-BIT, 2-mine, 3-original
-            # choose 012 will cause much longer training time!!!
+            choose_noise = 3 # 0-gauss, 1-BIT, 2-mine
             if choose_noise == 0:
                 # 1_Normal: Noisy -> std = 0.3 - 58, 0.05 - 74 -> clear
                 std = zmf.uniform(0.05,0.3)
