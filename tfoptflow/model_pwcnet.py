@@ -378,6 +378,7 @@ class ModelPWCNet(ModelBase):
             Also, return adaptation info in (N,2,H,W,3) format
         """
         # Ensure we're dealing with RGB image pairs
+        print("zmf:",x.shape)
         assert (isinstance(x, np.ndarray) or isinstance(x, list))
         if isinstance(x, np.ndarray):
             assert (len(x.shape) == 5)
