@@ -103,7 +103,7 @@ ds.print_config()
 nn_opts = deepcopy(_DEFAULT_PWCNET_TRAIN_OPTIONS)
 nn_opts['verbose'] = True
 # zmf input 2
-nn_opts['ckpt_dir'] = '../../../workplace/tfoptflow/largeModel/todelete/'
+nn_opts['ckpt_dir'] = '../../../workplace/tfoptflow/largeModel/grad/gauss/'
 nn_opts['batch_size'] = ds_opts['batch_size']
 nn_opts['x_shape'] = [2, ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 3]
 nn_opts['y_shape'] = [ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 2]
