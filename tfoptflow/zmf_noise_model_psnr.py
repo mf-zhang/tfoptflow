@@ -3,14 +3,14 @@ import math
 import numpy as np
 
 addr_imclear = '../../../data/dataset/VBOF/myoptflow/YOMO-full/test/10001_img1.jpg'
-addr_imnoisy = '../../../data/dataset/VBOF/myoptflow/YOMO-full/test/10009_img1.jpg'
+addr_imnoisy = '../../../data/dataset/VBOF/myoptflow/YOMO-full/test/10008_img1.jpg'
 
 # 0_Real: Noisy -> 60 62 65 67 69 70 71 73 361 -> clear
 imclear = zmf.imread(addr_imclear)/255.
 imnoisy = zmf.imread(addr_imnoisy)/255.
 
 # 1_Normal: Noisy -> std = 0.3 - 58, 0.05 - 74 -> clear
-std = 0.25
+std = 0.1
 noise_Normal = zmf.normal(0,std,imclear.shape)
 
 # 2_BIT: Noisy -> logK = 1.8 - 60, 0.6 - 70  -> clear
@@ -43,6 +43,6 @@ b = zmf.uniform(0.05,0.2)
 std = (a * imclear + b)
 noise_Mine = zmf.normal(0,std,imclear.shape)
 
-print(zmf.im_psnr(imclear,imclear+noise_BIT))
+print(zmf.im_psnr(imclear,imnoisy))
 
-zmf.imshow(imclear+noise_BIT)
+zmf.imshow(imnoisy)
