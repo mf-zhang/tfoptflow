@@ -658,12 +658,12 @@ class ModelPWCNet(ModelBase):
                 # x_adapt: [batch_size,2,H,W,3] float32 y_adapt: [batch_size,H,W,2] float32
                 if self.opts['use_tf_data'] is True:
                     x, y, _ = self.sess.run(train_next_batch)
-                    print(x.shape,y.shape,x.mean()) # (8, 2, 256, 448, 3) (8, 256, 448, 2) 135.9569324311756
+                    # print(x.shape,y.shape,x.mean()) # (8, 2, 256, 448, 3) (8, 256, 448, 2) 135.9569324311756
                 else:
                     x, y, _ = self.ds.next_batch(batch_size * self.num_gpus, split='train')
                 x_adapt, _ = self.adapt_x(x)
                 y_adapt, _ = self.adapt_y(y)
-                print(x_adapt.shape,y_adapt.shape,x_adapt.mean()) # (8, 2, 256, 448, 3) (8, 256, 448, 2) 0.5331643
+                # print(x_adapt.shape,y_adapt.shape,x_adapt.mean()) # (8, 2, 256, 448, 3) (8, 256, 448, 2) 0.5331643
 
                 # Run the samples through the network (loss, error rate, and optim ops (backprop))
                 feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt}
@@ -1568,12 +1568,13 @@ class ModelPWCNet(ModelBase):
 
             # Extract pyramids of CNN features from both input images (1-based lists))
             c1, c2 = self.extract_features(x_tnsr)
+            # print(c1) # [None, (bs, 128, 224, 16), (bs, 64, 112, 32), (bs, 32, 56, 64), (bs, 16, 28, 96), (bs, 8, 14, 128), (bs, 4, 7, 196)]
 
             flow_pyr = []
 
             for lvl in range(self.opts['pyr_lvls'], self.opts['flow_pred_lvl'] - 1, -1): # 6,2-1,-1: 6,5,4,3,2
 
-                if lvl == self.opts['pyr_lvls']:
+                if lvl == self.opts['pyr_lvls']: # 6, first time in loop
                     # Compute the cost volume
                     corr = self.corr(c1[lvl], c2[lvl], lvl)
 
@@ -1592,7 +1593,7 @@ class ModelPWCNet(ModelBase):
 
                 _, lvl_height, lvl_width, _ = tf.unstack(tf.shape(c1[lvl]))
 
-                if lvl != self.opts['flow_pred_lvl']:
+                if lvl != self.opts['flow_pred_lvl']: # not final iteration
                     if self.opts['use_res_cx']:
                         flow = self.refine_flow(upfeat, flow, lvl)
 
