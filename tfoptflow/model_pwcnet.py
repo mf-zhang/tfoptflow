@@ -658,10 +658,12 @@ class ModelPWCNet(ModelBase):
                 # x_adapt: [batch_size,2,H,W,3] float32 y_adapt: [batch_size,H,W,2] float32
                 if self.opts['use_tf_data'] is True:
                     x, y, _ = self.sess.run(train_next_batch)
+                    # print(x.shape,y.shape,x.mean()) # (8, 2, 256, 448, 3) (8, 256, 448, 2) 135.9569324311756
                 else:
                     x, y, _ = self.ds.next_batch(batch_size * self.num_gpus, split='train')
                 x_adapt, _ = self.adapt_x(x)
                 y_adapt, _ = self.adapt_y(y)
+                # print(x_adapt.shape,y_adapt.shape,x_adapt.mean()) # (8, 2, 256, 448, 3) (8, 256, 448, 2) 0.5331643
 
                 # Run the samples through the network (loss, error rate, and optim ops (backprop))
                 feed_dict = {self.x_tnsr: x_adapt, self.y_tnsr: y_adapt}
@@ -812,7 +814,7 @@ class ModelPWCNet(ModelBase):
         """
         # Have the samples been padded to the nn's requirements? If so, crop flows back to original size.
         y_tnsr, flow_pred_tnsr = self.y_tnsr, self.flow_pred_tnsr
-        if self.opts['adapt_info'] is not None:
+        if self.opts['adapt_info'] is not None: # (1,436,1024,2)
             y_tnsr = y_tnsr[:, 0:self.opts['adapt_info'][1], 0:self.opts['adapt_info'][2], :]
             flow_pred_tnsr = flow_pred_tnsr[:, 0:self.opts['adapt_info'][1], 0:self.opts['adapt_info'][2], :]
 
@@ -1104,17 +1106,21 @@ class ModelPWCNet(ModelBase):
         init = tf.keras.initializers.he_normal()
         with tf.variable_scope(name):
             for pyr, x, reuse, name in zip([c1, c2], [x_tnsr[:, 0], x_tnsr[:, 1]], [None, True], ['c1', 'c2']):
-                for lvl in range(1, self.opts['pyr_lvls'] + 1):
+                # pyr = c1 == [None], x = x_tnsr[:, 0] 1st frame [batch_size,H,W,3], reuse = None, name = 'c1' 
+                # pyr = c2 == [None], x = x_tnsr[:, 1] 2nd frame [batch_size,H,W,3], reuse = True, name = 'c2' 
+
+                for lvl in range(1, self.opts['pyr_lvls'] + 1): # 123456
                     # tf.layers.conv2d(inputs, filters, kernel_size, strides=(1, 1), padding='valid', ... , name, reuse)
                     # reuse is set to True because we want to learn a single set of weights for the pyramid
+                    # reuse: Boolean, whether to reuse the weights of a previous layer by the same name.
                     # kernel_initializer = 'he_normal' or tf.keras.initializers.he_normal(seed=None)
                     f = num_chann[lvl]
-                    x = tf.layers.conv2d(x, f, 3, 2, 'same', kernel_initializer=init, name=f'conv{lvl}a', reuse=reuse)
-                    x = tf.nn.leaky_relu(x, alpha=0.1)  # , name=f'relu{lvl+1}a') # default alpha is 0.2 for TF
-                    x = tf.layers.conv2d(x, f, 3, 1, 'same', kernel_initializer=init, name=f'conv{lvl}aa', reuse=reuse)
-                    x = tf.nn.leaky_relu(x, alpha=0.1)  # , name=f'relu{lvl+1}aa')
-                    x = tf.layers.conv2d(x, f, 3, 1, 'same', kernel_initializer=init, name=f'conv{lvl}b', reuse=reuse)
-                    x = tf.nn.leaky_relu(x, alpha=0.1, name=f'{name}{lvl}')
+                    x = tf.layers.conv2d(inputs=x, filters=f, kernel_size=3, strides=2, padding='same', kernel_initializer=init, name=f'conv{lvl}a', reuse=reuse)
+                    x = tf.nn.leaky_relu(features=x, alpha=0.1)  # , name=f'relu{lvl+1}a') # default alpha is 0.2 for TF
+                    x = tf.layers.conv2d(inputs=x, filters=f, kernel_size=3, strides=1, padding='same', kernel_initializer=init, name=f'conv{lvl}aa', reuse=reuse)
+                    x = tf.nn.leaky_relu(features=x, alpha=0.1)  # , name=f'relu{lvl+1}aa')
+                    x = tf.layers.conv2d(inputs=x, filters=f, kernel_size=3, strides=1, padding='same', kernel_initializer=init, name=f'conv{lvl}b', reuse=reuse)
+                    x = tf.nn.leaky_relu(features=x, alpha=0.1, name=f'{name}{lvl}')
                     pyr.append(x)
         return c1, c2
 
@@ -1562,12 +1568,13 @@ class ModelPWCNet(ModelBase):
 
             # Extract pyramids of CNN features from both input images (1-based lists))
             c1, c2 = self.extract_features(x_tnsr)
+            # print(c1) # [None, (bs, 128, 224, 16), (bs, 64, 112, 32), (bs, 32, 56, 64), (bs, 16, 28, 96), (bs, 8, 14, 128), (bs, 4, 7, 196)]
 
             flow_pyr = []
 
-            for lvl in range(self.opts['pyr_lvls'], self.opts['flow_pred_lvl'] - 1, -1):
+            for lvl in range(self.opts['pyr_lvls'], self.opts['flow_pred_lvl'] - 1, -1): # 6,2-1,-1: 6,5,4,3,2
 
-                if lvl == self.opts['pyr_lvls']:
+                if lvl == self.opts['pyr_lvls']: # 6, first time in loop
                     # Compute the cost volume
                     corr = self.corr(c1[lvl], c2[lvl], lvl)
 
@@ -1586,7 +1593,7 @@ class ModelPWCNet(ModelBase):
 
                 _, lvl_height, lvl_width, _ = tf.unstack(tf.shape(c1[lvl]))
 
-                if lvl != self.opts['flow_pred_lvl']:
+                if lvl != self.opts['flow_pred_lvl']: # not final iteration
                     if self.opts['use_res_cx']:
                         flow = self.refine_flow(upfeat, flow, lvl)
 
