@@ -51,7 +51,7 @@ from model_pwcnet import ModelPWCNet, _DEFAULT_PWCNET_TRAIN_OPTIONS
 if sys.platform.startswith("win"):
     _DATASET_ROOT = 'E:/datasets/'
 else: # zmf input 1
-    _DATASET_ROOT = '../../../data/dataset/FlyingChairs_MixGaussRandomReal_lhalf/FlyingChairs_release/'
+    _DATASET_ROOT = '../../../data/dataset/FlyingChairs_MixGaussRandomReal_half/FlyingChairs_release/'
 _FLYINGCHAIRS_ROOT = _DATASET_ROOT
 # _FLYINGTHINGS3DHALFRES_ROOT = _DATASET_ROOT + 'FlyingThings3D_HalfRes'
     
@@ -103,7 +103,7 @@ ds.print_config()
 nn_opts = deepcopy(_DEFAULT_PWCNET_TRAIN_OPTIONS)
 nn_opts['verbose'] = True
 # zmf input 2
-nn_opts['ckpt_dir'] = '../../../workplace/tfoptflow/largeModel/no_grad/mix_gauss_real_randomhalf_l/'
+nn_opts['ckpt_dir'] = '../../../workplace/tfoptflow/largeModel/no_grad/mix_gauss_real_randomhalf__long/'
 nn_opts['batch_size'] = ds_opts['batch_size']
 nn_opts['x_shape'] = [2, ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 3]
 nn_opts['y_shape'] = [ds_opts['crop_preproc'][0], ds_opts['crop_preproc'][1], 2]
@@ -120,20 +120,19 @@ nn_opts['flow_pred_lvl'] = 2
 
 # In[6]:
 
+nn_opts['lr_policy'] = 'multisteps'
+nn_opts['lr_boundaries'] = [400000, 600000, 800000, 1000000, 1200000]
+nn_opts['lr_values'] = [0.0001, 5e-05, 2.5e-05, 1.25e-05, 6.25e-06, 3.125e-06]
+nn_opts['max_steps'] = 1200000
 
-# Set the learning rate schedule. This schedule is for a single GPU using a batch size of 8.
-# Below,we adjust the schedule to the size of the batch and the number of GPUs.
-nn_opts['lr_policy'] = 'cyclic'
-nn_opts['cyclic_lr_max'] = 5e-04 # Anything higher will generate NaNs
-nn_opts['cyclic_lr_base'] = 1e-05
-nn_opts['cyclic_lr_stepsize'] = 20000
-nn_opts['max_steps'] = 200000
+# Below, we adjust the schedule to the size of the batch and our number of GPUs
+# (2).
+nn_opts['max_steps'] = int(nn_opts['max_steps'] * 8 / ds_opts['batch_size'])
+nn_opts['lr_boundaries'] = [int(boundary * 8 / ds_opts['batch_size']) for boundary in nn_opts['lr_boundaries']]
 
-# Below,we adjust the schedule to the size of the batch and our number of GPUs (2).
-nn_opts['cyclic_lr_stepsize'] /= len(gpu_devices)
-nn_opts['max_steps'] /= len(gpu_devices)
-nn_opts['cyclic_lr_stepsize'] = int(nn_opts['cyclic_lr_stepsize'] / (float(ds_opts['batch_size']) / 8))
-nn_opts['max_steps'] = int(nn_opts['max_steps'] / (float(ds_opts['batch_size']) / 8))
+# Debugging changes
+nn_opts['max_to_keep'] = 50
+nn_opts['display_step'] = 1000
 
 
 # In[7]:
