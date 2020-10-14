@@ -12,9 +12,7 @@ from __future__ import absolute_import, division, print_function
 import matplotlib.pyplot as plt
 
 from utils import clean_dst_file
-from optflow import *
-import numpy as np
-import matplotlib.pyplot as plt
+from optflow import flow_to_img
 
 
 def plot_img_pairs_w_flows(
@@ -119,18 +117,8 @@ def display_img_pairs_w_flows(
         info: optional, stats to display above predicted flow
         flow_mag_max: Max flow to map to 255
     """
-    print(np.max(flow_preds))
-    print(np.min(flow_preds))
     plt = plot_img_pairs_w_flows(img_pairs, None, 0, flow_preds, flow_gts, titles, info, flow_mag_max)
     plt.show()
-    
-def zmf_save_flows(names,flow_preds,addr):
-    assert(len(names) == len(flow_preds))
-    l = len(names)
-    for i in range(l):
-        dst = '%s/%s'%(addr,names[i])
-        clean_dst_file(dst)
-        flow_write(flow_preds[i],dst)
 
 
 def archive_img_pairs_w_flows(
